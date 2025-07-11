@@ -8,31 +8,31 @@ Building a high-performance bipedal robot that combines Pixar and Disney BDX！
    </tr> 
 </table>
 
-In this project, we combined Pixar's lamp robot and Disney's BDX robot to build a 60cm high-performance Tinker bipedal robot.</br>
+In this project, we combined Pixar's lamp robot and Disney's BDX robot to build a 60cm high-performance Nano bipedal robot.</br>
 The entire robot uses a brushless motor, runs a reinforcement learning algorithm and comes with an open source tutorial. The cost of the whole machine is less than 15,000 RMB!</br>
 This project will update the latest information in real time in the Feishu link below[https://hcn64ij2s2xr.feishu.cn/wiki/AZJxwlvEpiWnRrkeBbGc21U9n7f]</br>
 Detail intro:</br>
 https://www.bilibili.com/video/BV1FRZoY1ExW/?spm_id_from=333.337.search-card.all.click
 
 # State of sim2real
-The gait of TinkerV2 version is highly consistent with the BDX effect ! 
+The gait of Nano version is highly consistent with the BDX effect ! 
 
 https://private-user-images.githubusercontent.com/16828431/430457828-f0ea37f3-0f17-4512-8b72-3c25d8892571.mp4?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDM3ODMxNjQsIm5iZiI6MTc0Mzc4Mjg2NCwicGF0aCI6Ii8xNjgyODQzMS80MzA0NTc4MjgtZjBlYTM3ZjMtMGYxNy00NTEyLThiNzItM2MyNWQ4ODkyNTcxLm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTA0MDQlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwNDA0VDE2MDc0NFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTdmNzQ2OTBmOWRhNmQyMzI5NmViYWIyNDIyNjVmM2M5YTVhMGVlYzlhMmNlMDU1NzNkMWM1YjYxODQ4OWIwMTYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.qmf0L0zIKwlTQJSXWiywr1p4hXOW-nzPU4sdOK5LAhQ
 
 https://private-user-images.githubusercontent.com/16828431/430457885-5fd6a661-4399-4f3d-8686-e99e13dff1be.mp4?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDM3ODMxNjQsIm5iZiI6MTc0Mzc4Mjg2NCwicGF0aCI6Ii8xNjgyODQzMS80MzA0NTc4ODUtNWZkNmE2NjEtNDM5OS00ZjNkLTg2ODYtZTk5ZTEzZGZmMWJlLm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTA0MDQlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwNDA0VDE2MDc0NFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWJjOWIzMjBlMmQ3MDJjYjJkZTdlOWFhZmQ0OGU3NzU0MzI1ODRiOWRmY2NjZWFkMjUwNjYxYmFlNThmOTY5NmUmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.MVlJK7VAP7XI22lxy7mg0DW2KEQ_tOTj9H8t4jal5_I
 
 # Updates
-> Update 2025/4/5: You can try two policies we trained : Update TinkerV2 first release version.
+> Update 2025/4/5: You can try two policies we trained : Update Nano first release version.
 
 # CAD
 https://private-user-images.githubusercontent.com/16828431/430457786-0a5316d1-bd46-40a6-932d-3f43c3e6b83e.mp4?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDM3ODMzNzUsIm5iZiI6MTc0Mzc4MzA3NSwicGF0aCI6Ii8xNjgyODQzMS80MzA0NTc3ODYtMGE1MzE2ZDEtYmQ0Ni00MGE2LTkzMmQtM2Y0M2MzZTZiODNlLm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTA0MDQlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwNDA0VDE2MTExNVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTk3OTVlMWM5NjJmNzA2M2M2NTIxNzQxNTBlMDc0Zjg2ZTMwMmM1NjhlZjc3YzBkNTYzYTk3YTdkY2Q2ZjIzNjMmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.8Z5d7ga20yFIBkBnhm_UFgYnPaq4_8kAawa9LYxHZxU
 
-See [this document](https://hcn64ij2s2xr.feishu.cn/wiki/DPWDwNWaZiGNvpkbRrGcBXCHn7d) for getting from the CAD design of Tinker.
+See [this document](https://hcn64ij2s2xr.feishu.cn/wiki/DPWDwNWaZiGNvpkbRrGcBXCHn7d) for getting from the CAD design of Nano.
 
 # PCB
 https://private-user-images.githubusercontent.com/16828431/430457807-14ccab23-9aa0-415d-9c31-68c5db94b0f6.mp4?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDM3ODMzNzUsIm5iZiI6MTc0Mzc4MzA3NSwicGF0aCI6Ii8xNjgyODQzMS80MzA0NTc4MDctMTRjY2FiMjMtOWFhMC00MTVkLTljMzEtNjhjNWRiOTRiMGY2Lm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTA0MDQlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwNDA0VDE2MTExNVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTBkYmJhZmZkOGU3ZTUwNjUxNWM4MzVjMmNiNDMwZmU3MjkzZWM1NDM2YjMxZDI3MjMyMGUzNWViMWI4NWE0ODUmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.4Y7-XNhekliZ-s66rt1jizERRYiHeXziS0FMooMcGNs
 
-See [this document](https://hcn64ij2s2xr.feishu.cn/wiki/DPWDwNWaZiGNvpkbRrGcBXCHn7d) for getting from the PCB design of Tinker.
+See [this document](https://hcn64ij2s2xr.feishu.cn/wiki/DPWDwNWaZiGNvpkbRrGcBXCHn7d) for getting from the PCB design of Nano.
 
 # RL stuff
 We are switching to IsaccGym, see this [repo](https://hcn64ij2s2xr.feishu.cn/wiki/LJxZwgL1diHB8ykKU1acFnXknOf)
