@@ -38,6 +38,10 @@ vmc_param:
 rl_gait: 
   net_run_dt:   0.028 #s
   action_scale: 0.25
+
+  # net_run_dt1:   0.02 #s
+  # rl_gait_duty:  0.5
+
   #in rad
   def_act0:  0
   def_act1:  0.12

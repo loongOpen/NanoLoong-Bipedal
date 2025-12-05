@@ -133,6 +133,7 @@ typedef struct
     float set_t[14],set_t_flt[14];
     float max_t[14];
     float kp[14],ki[14],kd[14];
+    // float kp_servo[14],ki_servo[14],kd_servo[14];
     float kp_auto[14],ki_auto[14],kd_auto[14];
     float q_max[14],q_min[14];
     float stiff[14],stiff_servo[14];

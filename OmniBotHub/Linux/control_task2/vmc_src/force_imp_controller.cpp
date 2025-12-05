@@ -57,7 +57,6 @@ void force_control_and_dis_stand(float dt) // 底层==>位力混控制  站立�
     float mess_force_taod2[3] = {0, 0};
     float mess_force_taod12[3] = {0, 0};
     float dt_scale = 1; // 0.005/(dt+0.00000001);<---------------------------------微分尺度系数
-
     set_motor_t(i); // CAN底层输出赋值
 }
 
@@ -80,7 +79,7 @@ void force_control_and_dis_rl(float dt) // 底层==>位力混控制  强化学�
     float mess_force_taod12[3] = {0, 0};
     float dt_scale = 1; // 0.005/(dt+0.00000001);<---------------------------------微分尺度系数
 
-     set_motor_t(i); // CAN底层输出赋值
+    set_motor_t(i); // CAN底层输出赋值
 }
 
 void force_control_and_dis_rl_eso(float dt) // 底层==>位力混控制  强化学习 加干扰观测器！！

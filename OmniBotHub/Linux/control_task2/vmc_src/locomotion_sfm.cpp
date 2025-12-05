@@ -253,21 +253,21 @@ char safe_check(float dt)
     #if !TEST_TROT_SW
     //printf("safe pit:%f %f rol:%f %f\n",robotwb.exp_att.pitch,robotwb.now_att.pitch,robotwb.exp_att.roll,robotwb.now_att.roll);
     if(fabs(robotwb.exp_att.pitch-robotwb.now_att.pitch)>SAFE_PITCH){//&&stand_force_enable_flag[4]==1){
-        //printf("rol %f %f\n",robotwb.exp_att.pitch,robotwb.now_att.pitch);
+        //printf("SAFE_PITCH check %f %f\n",robotwb.exp_att.pitch,robotwb.now_att.pitch);
         timer_imu[0]+=dt;
     }
     else
         timer_imu[0]=0;
 
     if(fabs(robotwb.exp_att.roll-robotwb.now_att.roll)>SAFE_ROLL){//&&stand_force_enable_flag[4]==1){
-        //printf("rol %f %f\n",robotwb.exp_att.roll,robotwb.now_att.roll);
+        //printf("SAFE_ROLL check %f %f\n",robotwb.exp_att.roll,robotwb.now_att.roll);
         timer_imu[1]+=dt;
     }
     else
         timer_imu[1]=0;
     //printf("%f %f\n",robotwb.exp_att.roll,robotwb.now_att.roll);
     if((timer_imu[0]>SAFE_T||timer_imu[1]>SAFE_T)&&gait_ww.state_gait>=2){
-        //printf("%f %f\n",timer_imu[0],timer_imu[1]);
+        printf("%f %f\n",timer_imu[0],timer_imu[1]);
         return 1;
     }
     #endif
@@ -416,7 +416,7 @@ void servo_controller(float dt){
         // 持续写入浮点数到文件
         for(int i=0;i<14;i++)
             floatNumbers1[i]=leg_motor_all.q_servo[i];
-         appendFloatToFile(floatNumbers1, "/home/odroid/Tinker/Motion/wave.txt");
+         appendFloatToFile(floatNumbers1, "/home/bianbu-tinker/bipedal-robot-real/Tinker/Motion/wave.txt");
         //printf("q_record=%.2f %.2f %.2f\n",spi_rx.q_servo[0],spi_rx.q_servo[1],spi_rx.q_servo[2]);
         if(ocu.key_b==1&&!ocu_key_b_reg){
             timer_grasp=0;
@@ -447,7 +447,7 @@ void servo_controller(float dt){
         break;
         case 1://replay
            //printf("currentLine=%d\n",currentLine);
-           if(readNextLine("/home/odroid/Tinker/Motion/wave.txt", currentLine, floatNumbers)==-1)
+           if(readNextLine("/home/bianbu-tinker/bipedal-robot-real/Tinker/Motion/wave.txt", currentLine, floatNumbers)==-1)
            {
                leg_motor_all.servo_replay_mode++;
                printf("Relay Done\n");
@@ -473,23 +473,25 @@ void servo_controller(float dt){
 }
 //--------------------------------------------------主步态状态机------------------------------------------------
 float qd_init[2]={  88, 88};//初始化角速度
-float qd_reset[2]={-70,-70};
+float qd_reset[2]={-70,-70};//电机复位角速度
 char sit_down_flag=0;
-float tau_block_init=10.68;//3.2
+float tau_block_init=10.68;//3.2 初始化时的力矩限制
 
-float sdk_input_check=0;
-int get_new_sdk_input=0;
+float sdk_input_check=0;//SDK 控制输入检查
+int get_new_sdk_input=0;//SDK 新输入标志
+
+/*机器人的主步态状态机核心逻辑，负责统筹机器人从「待机准备」→「电机初始化」→「步态执行」的全流程，同时包含 SDK 控制输入处理 和 安全保护机制*/
 void locomotion_sfm(float dt)
 {
     int i,j;
-    char robot_protect=0;
+    char robot_protect=0;//安全保护标志（1 = 检测到危险，如摔倒，触发紧急保护）
     static int test_state=0;
-    static char temp_q_rst_flag=0,temp_err_rst_flag=0;
+    static char temp_q_rst_flag=0,temp_err_rst_flag=0;//电机角度标定子状态机（0 = 待机，1 = 标定中，2 = 标定完成）；电机故障复位子状态机（0 = 待机，1 = 复位中）
     char temp_flag[14]={0};
     static char q_init_done[14]={0};
     static float q_init_done_timer[14]={0};
     static int init=0;
-    static char ocu_key_ud_reg;
+    static char ocu_key_ud_reg;//手柄上下键（ocu.key_ud）的状态寄存器
     static float timer[10]={0};
     static char flip_flag=0;
     static float q_init_rotate_w[4][3]={1};
@@ -514,9 +516,11 @@ void locomotion_sfm(float dt)
   }else
       sdk_input_check=get_new_sdk_input=0;
 
-
+  //gait_ww.state_gait 为主步态状态（0 = 待机，1 = 电机初始化，2 = 步态执行
+  //vmc_all.gait_mode为具体步态模式，如G_RL强化学习步态
   switch (gait_ww.state_gait)
   {
+        //state 0 待机状态
         case 0:
             switch(temp_q_rst_flag)//------cal motor
             {
@@ -524,7 +528,7 @@ void locomotion_sfm(float dt)
                     motor_power_on=0;
                     //-------------------标定角度 按键Y
                     if(ocu.key_st)timer[1]+=dt;else timer[1]=0;
-                    if(timer[1]>6)
+                    if(timer[1]>6)//长按key_st 6秒
                     {
                     #if RUN_WEBOTS
                         printf("Motor Zero Position delaying!!.....\n");
@@ -537,22 +541,22 @@ void locomotion_sfm(float dt)
                 break;
                 case 1:
                     timer[1]+=dt;
-                    if(timer[1]>4)
+                    if(timer[1]>4)//标定延迟，等待4秒
                     {
                     #if RUN_WEBOTS
                         printf("Motor Zero Position Save!!.....\n");
                     #endif
                     temp_q_rst_flag++;
 
-                    leg_motor_all.reset_q=2;
-                    robotwb.beep_state=BEEP_BLDC_GAIT_SWITCH;
+                    leg_motor_all.reset_q=2;//保存标定的零位
+                    robotwb.beep_state=BEEP_BLDC_GAIT_SWITCH;//蜂鸣器提示
                     timer[1]=0;
                     }
                 break;
                 case 2://
                     if(!ocu.key_st)timer[1]+=dt;
 
-                    if(timer[1]>0.5)
+                    if(timer[1]>0.5)//等待key_st松开0.5秒
                     {
                         temp_q_rst_flag=0;
                         leg_motor_all.reset_q=0;
@@ -567,7 +571,7 @@ void locomotion_sfm(float dt)
             case 0:
                 if(ocu.key_b)timer[2]+=dt;else timer[2]=0;
 
-                if(timer[2]>1)
+                if(timer[2]>1)//长按key_b键1秒
                 {
                     #if RUN_WEBOTS
                     printf("Reset Motor Error.....\n");
@@ -582,7 +586,7 @@ void locomotion_sfm(float dt)
             case 1:
                 if(!ocu.key_b)timer[2]+=dt;
 
-                if(timer[2]>0.5)
+                if(timer[2]>0.5)//等待key_b键松开，0.5秒后重置子状态机
                 {
                     temp_err_rst_flag=0;
                     leg_motor_all.reset_err=0;//reset_err_flag=0;
@@ -591,6 +595,7 @@ void locomotion_sfm(float dt)
             break;
             }//-----------
 
+            //判断key_x按下
             if(ocu.key_x||get_new_sdk_input)timer[0]+=dt;else timer[0]=0;
             if(timer[0]>1.0)
             {
@@ -598,13 +603,13 @@ void locomotion_sfm(float dt)
                 printf("Motor Initing.....\n");
                 #endif
                 leg_motor_all.motor_en=1;//开始能
-                leg_motor_all.servo_en=1;
+                leg_motor_all.servo_en=1;//监听模式->控制模式
                 motor_power_on=1;
                 timer[0]=timer[1]=0;
                 vmc_all.param.soft_weight=1;
                 vmc_all.gait_mode=IDLE;vmc_all.power_state=2;
 
-                gait_ww.state_gait++;
+                gait_ww.state_gait++;// 按下key_x，state 0 切换到 state 1
                 sit_down_flag=0;//进站立标志位
                 robotwb.beep_state=BEEP_BLDC_ZERO_INIT;
                 reset_tar_pos(0);
@@ -615,7 +620,9 @@ void locomotion_sfm(float dt)
 
     break;
 
+    //state 1 电机初始化状态  
     case 1:
+    //   printf("开始电机初始化");
       timer[0]+=dt;
       if(timer[0]>0.1){
           for(i=0;i<14;i++){
@@ -634,7 +641,7 @@ void locomotion_sfm(float dt)
               #if RUN_WEBOTS
               printf("Motor Initing Done All!!\n");
               #endif
-              gait_ww.state_gait++;
+              gait_ww.state_gait++;//等待3.5秒初始化完成，state 1 切换到 state 2
 
               reset_tar_pos(0);
               for(i=0;i<14;i++){//复位状态 for smooth
@@ -643,10 +650,19 @@ void locomotion_sfm(float dt)
       }
   break;
 
+  //state 2 步态切换线程状态
   case 2://步态线程------------------------<<
+    // printf("初始化结束，切换进入步态线程");
+    static bool gait_switch_cnt = false;
+    if(!gait_switch_cnt){
+        printf("调用gait-switch， 当前步态模式gait_mode=%d\n",vmc_all.gait_mode);
+        // printf("dt参数：dt=%.4f\n",dt);
+        gait_switch_cnt = true;
+    }
     gait_switch(dt);//步态切换状态机
     switch(vmc_all.gait_mode){
         case STAND_RC:
+            // printf("步态：STAND_RC\n");
             if(test_pos_st)//姿态测试
             {
                 timer[3] += test_st_exp[4] / 2.0*dt;
@@ -663,9 +679,16 @@ void locomotion_sfm(float dt)
             Gait_Stand_Update(dt);
         break;
         case G_RL:
+            static bool Gait_RL_Update_cnt = false;
+            if(!Gait_RL_Update_cnt){
+                printf("开始调用Gait_RL_Update\n");
+                Gait_RL_Update_cnt = true;
+            }
+            // printf("步态：G_RL\n");
             Gait_RL_Update(dt);
         break;
         case RECOVER:
+        // printf("步态：RECOVER\n");
             Gait_Recovery_Update(dt);
         break;
     default:
@@ -775,9 +798,10 @@ char gait_switch(float dt)//moshi Remote 主步态切换状态机---------------
 //---------------------------OCU 模式锟叫伙拷-------------------------------
     if(((ocu.connect&&ocu.mode>=2)||sdk.sdk_mode==1||ocu.esp32_connect)||(RUN_WEBOTS&&!RUN_PI)){//锟斤拷通锟街憋拷
 
+            // printf("打印当前具体步态模式,cmd_robot_state=：%d\n",ocu.cmd_robot_state);
             switch(ocu.cmd_robot_state)//moshi
             {
-            case 0://锟斤拷全模式
+            case 0://安全模式
                 vmc_all.param.robot_mode=M_SAFE;
                 vmc_reset();//
                 ocu.cmd_robot_state=1;
@@ -878,9 +902,14 @@ char gait_switch(float dt)//moshi Remote 主步态切换状态机---------------
                         timer_auto_switch=0;
                 }
     #endif
-                if (((ocu.key_x == 1 && ocu.key_x_reg == 0)||timer_auto_switch>0.15)&&(vmc_all.rl_connect==1||RL_USE_TVM))//Key-X -> RL
+                if (((ocu.key_x == 1 && ocu.key_x_reg == 0)||timer_auto_switch>0.15)&&(vmc_all.rl_connect==1||RL_USE_ONNX))//Key-X -> RL
                 {
                      ocu.cmd_robot_state = 18;
+                    static bool Gait_RL_Active1_cnt = false;
+                    if(!Gait_RL_Active1_cnt){
+                        printf("开始调用Gait_RL_Active1，首次初始化Trot\n");
+                        Gait_RL_Active1_cnt = true;
+                    }
                      Gait_RL_Active(1);
                      auto_sit_down=auto_sit_down_t=0;
                      kick_lsm=0;
@@ -890,12 +919,18 @@ char gait_switch(float dt)//moshi Remote 主步态切换状态机---------------
             break;
 
             case 18://RL Locomotion-------------------------------
+                static bool RL_Locomotion_cnt = false;
+                if(!RL_Locomotion_cnt){
+                    printf("开始调用case 18:RL Locomotion\n");
+                    // printf("相关参数：config_gait-net_run_dt=%.4f, vmc_all.net_run_dt=%.4f, dt=%.4f",config_gait["rl_gait"]["net_run_dt"].as<float>(),vmc_all.net_run_dt,dt);
+                    RL_Locomotion_cnt = true;
+                }
                 vmc_all.rl_commond_rl_rst[0]+=(0-vmc_all.rl_commond_rl_rst[0])*dt*3.0;
-                vmc_all.net_run_dt+=(config_gait["rl_gait"]["net_run_dt"].as<float>()-vmc_all.net_run_dt)*dt*1.5;
+                // vmc_all.net_run_dt+=(config_gait["rl_gait"]["net_run_dt"].as<float>()-vmc_all.net_run_dt)*dt*1.5;
                 //printf("vmc_all.rl_commond_rl_rst[0]=%f vmc_all.net_run_dt=%f\n",vmc_all.rl_commond_rl_rst[0],vmc_all.net_run_dt);
      #if AUTO_SWITCH
                 if(gait_ww.auto_switch==1){
-                    if(vmc_all.rl_mode_used==1){//tort
+                    if(vmc_all.rl_mode_used==1){//trot
                         if(fabs(vmc_all.tar_spd.x)<0.02&&fabs(vmc_all.tar_spd.y)<0.02&&fabs(vmc_all.tar_spd.z)<0.1)
                             timer_auto_switch+=dt;
                         else
@@ -923,10 +958,11 @@ char gait_switch(float dt)//moshi Remote 主步态切换状态机---------------
                 vmc_all.tar_pos.z = LIMIT(vmc_all.tar_pos.z, fabs(MIN_Z)*1.2, fabs(MAX_Z)*0.9);
 
                 if (((ocu.key_b == 1 && ocu.key_b_reg == 0) ||
+                    (voice_cmd.cmd_type == 2) || //语音控制站立
                     (timer_auto_switch > 0.35 && vmc_all.rl_mode_used==1) ||
                     (sdk.sdk_mode == 1 && sdk.gait_mode == STAND_RC)) && vmc_all.rl_mode_used==1)
                 {
-#if 0
+#if 0 //暂时修改回传统站立模式？
                     stand_switch_trig = 0;
                     ocu.cmd_robot_state = 2;
                     vmc_all.param.robot_mode = M_STAND_RC;	vmc_all.gait_mode = STAND_RC;
@@ -938,15 +974,49 @@ char gait_switch(float dt)//moshi Remote 主步态切换状态机---------------
 #else
                     stand_switch_trig = 0;
                     timer_auto_switch=0;
+                    static bool Gait_RL_Active2_cnt = false;
+                    if(!Gait_RL_Active2_cnt){
+                        printf("开始调用Gait_RL_Active2，切换到Stand\n");
+                        Gait_RL_Active2_cnt = true;
+                    }
                     Gait_RL_Active(2);//RL stand
 #endif
                 }
 
                 if (((ocu.key_x == 1 && ocu.key_x_reg == 0) ||
+                    (voice_cmd.cmd_type == 1) || //语音控制踏步
                     (timer_auto_switch > 0.15 && vmc_all.rl_mode_used==2)||
                     (sdk.sdk_mode == 1 && sdk.gait_mode == G_RL)) && vmc_all.rl_mode_used==2)
                 {
                     timer_auto_switch=0;
+                    static bool Gait_RL_Active1_cnt = false;
+                    if(!Gait_RL_Active1_cnt){
+                        printf("开始调用Gait_RL_Active1，切换到Trot\n");
+                        Gait_RL_Active1_cnt = true;
+                    }
+                    if(voice_cmd.cmd_type){
+                        switch(voice_cmd.cmd_data){
+                        case 1://march_in_place
+                            vmc_all.tar_spd.x=0.0;
+                            vmc_all.tar_spd.y=0.0;
+                            vmc_all.tar_spd.z=0.0;
+                        break;
+                        case 2://forward
+                            vmc_all.tar_spd.x=0.2;
+                            vmc_all.tar_spd.x=0.0;
+                            vmc_all.tar_spd.z=0.0;
+                        break;
+                        case 3://turn_left
+                            vmc_all.tar_spd.x=0.05;
+                            vmc_all.tar_spd.x=0.0;
+                            vmc_all.tar_spd.z=0.2*57.3;//deg
+                        break;
+                        case 4://turn_right
+                            vmc_all.tar_spd.x=0.05;
+                            vmc_all.tar_spd.x=0.0;
+                            vmc_all.tar_spd.z=-0.2*57.3;//deg
+                        }
+                    }
                     Gait_RL_Active(1);//RL trot
                 }
 
@@ -1010,7 +1080,7 @@ char gait_switch(float dt)//moshi Remote 主步态切换状态机---------------
                  if (timer[0]>0.05)
                  {
                      printf("kick done move\n");
-#if 0
+#if 1 // 暂时修改传统站立，但可能切换不到这个步态
                      stand_switch_trig = 0;
                      ocu.cmd_robot_state = 2;
                      vmc_all.param.robot_mode = M_STAND_RC;	vmc_all.gait_mode = STAND_RC;
@@ -1028,6 +1098,11 @@ char gait_switch(float dt)//moshi Remote 主步态切换状态机---------------
                          leg_motor_all.stiff[i]=1;
                      }
                      ocu.cmd_robot_state = 18;
+                    static bool Gait_RL_Active0_cnt = false;
+                    if(!Gait_RL_Active0_cnt){
+                        printf("开始调用Gait_RL_Active0\n");
+                        Gait_RL_Active0_cnt = true;
+                    }
                      Gait_RL_Active(0);
                      auto_sit_down=auto_sit_down_t=0;
 #endif

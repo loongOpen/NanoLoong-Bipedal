@@ -1,7 +1,8 @@
 #ifndef _INCLUDE_H_
 #define _INCLUDE_H_
 #define AUTO_SWITCH 1
-#define RL_USE_TVM  1
+// #define RL_USE_TVM  1
+#define RL_USE_ONNX  1 // 添加ONNX宏
 
 #define EN_MESS_FIX 1
 #define MESS_FIX_TEST 0 //test mess compass

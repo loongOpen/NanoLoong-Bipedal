@@ -1,0 +1,8 @@
+struct Request {
+    float omega[3];
+    float eu_ang[3];
+    float command[3];
+    float q[10];
+    float dq[10];
+    int32 gait_type[1];
+};

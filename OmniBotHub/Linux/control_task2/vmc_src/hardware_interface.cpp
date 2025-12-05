@@ -249,6 +249,7 @@ void subscribe_webot_to_vmc(float dt)
         robotwb.Leg[i].limit_tao[2]=pos_force_p.max_t_d[2];//pos_force_p.max_t;
 
          if(vmc_all.gait_mode==TROT){
+             printf("判断步态模式TROT->硬件接口执行"); 
              robotwb.Leg[i].f_pos_pid[Xr]=pos_force_p.f_pos_pid_st[Xr];
              robotwb.Leg[i].f_pos_pid[Yr]=pos_force_p.f_pos_pid_st[Yr];
              robotwb.Leg[i].f_pos_pid[Zr]=pos_force_p.f_pos_pid_st[Zr];
@@ -751,5 +752,21 @@ void set_motor_t(int id)
         }
     }
     //printf("%f %f %f\n",leg_motor_all.q_servo[0],leg_motor_all.q_servo[1],leg_motor_all.q_servo[2]);
+
+    // // 每 500 次打印一次
+    // static int print_cnt = 0;
+    // if (++print_cnt >= 500) {
+    //     print_cnt = 0;
+    //     printf("[SPI_CTRL] servo_en=%d\n", leg_motor_all.servo_en);
+    //     for (int i = 0; i < 14; i++) {
+    //         printf("  id=%2d | q_set_servo=%.2f | q_set_servo_out=%.2f | q_servo=%.2f | spi_rx.q_servo=%.2f\n",
+    //             i,
+    //             leg_motor_all.q_set_servo[i],
+    //             leg_motor_all.q_set_servo_out[i],
+    //             leg_motor_all.q_servo[i],
+    //             spi_rx.q_servo[i]);
+    //     }
+    //     printf("----------------------------------------------------\n");
+    // }
 }
 #endif

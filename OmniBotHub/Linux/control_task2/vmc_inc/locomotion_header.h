@@ -108,7 +108,8 @@ void publish_vmc_to_webot(float dt);
 void readAllMotorPos(robotTypeDef* rob,float dt);
 void set_motor_q(int id);
 void set_motor_t(int id);
-
+// void set_motor_t_tinker(int id);
+// void set_motor_t_rlboy(int id);
 extern float sw_t[4] ;//= { 0.4,0.4,0.4,0.4 };
 extern float st_t[4];// = { 0.2,0.2,0.2,0.2 };
 //---------------------------------------------leg planner--------------------------------
@@ -224,7 +225,13 @@ typedef struct
 
 extern Gait_Climb gait_climb;
 
+typedef struct
+{
+    int cmd_type;//0-无数据 1-trot 2-stand 
+    int cmd_data;//0-无数据 1-踏步 2-前进 3-左转 4-右转
+}Voice_cmd;
 
+extern Voice_cmd voice_cmd;
 
 typedef struct
 {
@@ -345,6 +352,7 @@ void  Gait_ETL_Update_v1(float dt);
 void  Gait_Stand_Active(void);
 void  Gait_Stand_Update(float dt);
 
+// void  RL_Modle_load_test(void);
 void  Gait_RL_Active(char rst);
 void  Gait_RL_Update(float dt);
 

@@ -5,15 +5,20 @@
 #include <yaml-cpp/node/parse.h>
 #include <iostream>
 using namespace std;
-YAML::Node config_robot=YAML::LoadFile("/home/odroid/Tinker/Param/param_robot.yaml");
-YAML::Node config_gait=YAML::LoadFile("/home/odroid/Tinker/Param/param_gait.yaml");
+YAML::Node config_robot=YAML::LoadFile("/home/bianbu-tinker/bipedal-robot-real/Tinker/Param/param_robot.yaml");
+YAML::Node config_gait=YAML::LoadFile("/home/bianbu-tinker/bipedal-robot-real/Tinker/Param/param_gait.yaml");
 
 void robot_param_read(void)
 {
     int i=0;
     printf("--Load Robot Yaml--\n");
+    // config_robot=YAML::LoadFile("/home/bianbu-tinker/bipedal-robot-real/Tinker/Param/param_robot.yaml");
+    // config_gait=YAML::LoadFile("/home/bianbu-tinker/bipedal-robot-real/Tinker/Param/param_gait.yaml");
 
     vmc_all.param.soft_weight=1;
+    // robotwb.type=config_robot["robot_param"]["type"].as<float>();
+
+    // gait_ww.auto_switch=config_gait["sys_param"]["auto_gait_switch"].as<float>();
     gait_ww.auto_switch=config_gait["sys_param"]["auto_gait_switch"].as<float>();
     gait_ww.auto_gait_time=config_gait["sys_param"]["auto_gait_time"].as<float>();
     gait_ww.auto_zmp_st_check=config_gait["sys_param"]["auto_zmp_st_check"].as<float>();
@@ -22,7 +27,7 @@ void robot_param_read(void)
     MAX_SPD_X= config_gait["vmc_param"]["max_spd_x"].as<float>();
     MAX_SPD_Y= config_gait["vmc_param"]["max_spd_y"].as<float>();
     MAX_SPD_RAD= config_gait["vmc_param"]["max_spd_rotate"].as<float>();
-
+    printf("MAX_SPD_X=%f\n",MAX_SPD_X);
     //----------------------------底层伺服参数--------------------------------
     leg_motor_all.stiff_init=config_gait["imp_param"]["stiff_init"].as<float>();
     leg_motor_all.stiff_stand=config_gait["imp_param"]["stiff_stand"].as<float>();
@@ -228,7 +233,9 @@ void robot_param_read(void)
     }
 
     vmc_all.net_run_dt=config_gait["rl_gait"]["net_run_dt"].as<float>();
+    // vmc_all.net_run_dt1=config_gait["rl_gait"]["net_run_dt1"].as<float>();
     vmc_all.action_scale=config_gait["rl_gait"]["action_scale"].as<float>();
+    // vmc_all.rl_gait_duty=config_gait["rl_gait"]["rl_gait_duty"].as<float>();
 
     vmc_all.rl_commond_off[4]=config_gait["rl_gait"]["en_vel_off"].as<float>();
     vmc_all.rl_commond_off[0]=config_gait["rl_gait"]["vel_x_off"].as<float>();
@@ -251,6 +258,14 @@ void robot_param_read(void)
     vmc_all.default_action[13]=config_gait["rl_gait"]["def_act13"].as<float>();
     printf("param rl-default loading...\n");
 
+    // if(robotwb.type==RL_BOY){
+    //     for(int i=0;i<4;i++){
+    //         leg_motor_all.kp_servo[i]=3.0;
+    //         leg_motor_all.kd_servo[i]=0.15;
+    //         leg_motor_all.stiff_servo[i]=1.0;
+    //     }
+    // }
+
     //---------------------VMC 全局参数
     vmc_all.att_measure_bias[PITr]=config_gait["vmc_param"]["att_bias_pit"].as<float>();
     vmc_all.att_measure_bias[ROLr]=config_gait["vmc_param"]["att_bias_rol"].as<float>();
@@ -258,5 +273,4 @@ void robot_param_read(void)
     vmc_all.att_measure_bias_flip[ROLr]=config_gait["vmc_param"]["att_bias_rol_f"].as<float>();
     printf("IMU att fix bias is:P=%f R=%f Y=%f\n",vmc_all.att_measure_bias[PITr],vmc_all.att_measure_bias[ROLr],vmc_all.att_measure_bias[YAWr]);
     printf("IMU att_f fix bias is:P=%f R=%f Y=%f\n",vmc_all.att_measure_bias_flip[PITr],vmc_all.att_measure_bias_flip[ROLr],vmc_all.att_measure_bias_flip[YAWr]);
-
 }

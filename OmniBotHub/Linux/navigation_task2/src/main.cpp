@@ -32,7 +32,7 @@
 #include <yaml-cpp/yaml.h>
 #include <yaml-cpp/node/parse.h>
 
-YAML::Node config_hardware=YAML::LoadFile("/home/odroid/Tinker/Param/param_hardware.yaml");
+YAML::Node config_hardware=YAML::LoadFile("/home/bianbu-tinker/bipedal-robot-real/Tinker/Param/param_hardware.yaml");
 //  ps -ef | grep navigation_task
 // kill －9 324
 #define SERV_PORT       8889
@@ -592,9 +592,9 @@ void recorder(float dt) {
     {
     case 0:
         if(ocu.record.en_record){
-            fp1 = fopen("/home/odroid/Tinker/Data/file1.txt", "w");
-            fp2 = fopen("/home/odroid/Tinker/Data/file2.txt", "w");
-            fp3 = fopen("/home/odroid/Tinker/Data/file3.txt", "w");
+            fp1 = fopen("/home/bianbu-tinker/bipedal-robot-real/Tinker/Data/file1.txt", "w");
+            fp2 = fopen("/home/bianbu-tinker/bipedal-robot-real/Tinker/Data/file2.txt", "w");
+            fp3 = fopen("/home/bianbu-tinker/bipedal-robot-real/Tinker/Data/file3.txt", "w");
 
             if (fp1 != NULL) {
                 printf("Navigation::Recording Data \n");
