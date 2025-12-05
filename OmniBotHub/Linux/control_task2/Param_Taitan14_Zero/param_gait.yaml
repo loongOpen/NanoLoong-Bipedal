@@ -69,7 +69,7 @@ imp_param:
   kp_q03: 13.0
   kp_q04: 13.0
   kp_q05: 15.0 #yao
-  kp_q06: 0.0 #
+  kp_q06: 0.0 #tou
   kp_q10: 13.0
   kp_q11: 13.0
   kp_q12: 13.0

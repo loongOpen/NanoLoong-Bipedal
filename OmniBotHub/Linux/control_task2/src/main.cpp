@@ -13,7 +13,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdio.h>
-#include <unistd.h>
+// #include <unistd.h>
 #include <stdio.h>
 #include <sys/time.h>
 #include <math.h>
@@ -26,12 +26,16 @@
 #include "can.h"
 #include "locomotion_header.h"
 #include <pthread.h>
+#include <thread>
 #include <qpOASES.hpp>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <pthread.h>
+// #include <pthread.h>
 #include "eso_RL.h"
+#include <chrono>
+#include <dds/dds.hpp>
+#include "WalkCommand.hpp"
 
 #define SERV_PORT_MAP   6666
 pid_t pid_control,pid_servo,pid_mpc,pid_nav;
@@ -45,6 +49,8 @@ using namespace qpOASES;
 pthread_mutex_t lock;
 pthread_mutex_t lock_mpc;
 
+Voice_cmd voice_cmd;
+
 void setCurrentThreadHighPriority(bool value) {
 #if 1
   // Start out with a standard, low-priority setup for the sched params.
@@ -55,14 +61,14 @@ void setCurrentThreadHighPriority(bool value) {
   // If desired, set up high-priority sched params structure.
   if (value) {
     // FIFO scheduler, ranked above default SCHED_OTHER queue
-    policy = SCHED_FIFO;
+    policy = SCHED_RR;//SCHED_FIFO
     // The priority only compares us to other SCHED_FIFO threads, so we
     // just pick a random priority halfway between min & max.
+
     const int priority = (sched_get_priority_max(policy) + sched_get_priority_min(policy)) / 2;
 
     sp.sched_priority = priority;
-  }
-
+    }
   // Actually set the sched params for the current thread.
   if (0 == pthread_setschedparam(pthread_self(), policy, &sp)) {
     printf("IO Thread using high-priority scheduler!\n");
@@ -136,8 +142,8 @@ void rc_process(float T){
      }
 
      //printf("request_gait=%d ouc=%d sbus=%d uwb=%d en_sdk=%d\n",nav_tx.request_gait,ocu.connect,ocu.sbus_conncect,sdk_tar_way_point_uwb.check,sdk.sdk_mode) ;
+    //  printf("手柄连接状态:\n nav_tx.request_gait=%d\n ocu.connect=%d\n ocu.sbus_conncect=%d\n sdk_tar_way_point_uwb.check=%d\n sdk.sdk_mode=%d\n",nav_tx.request_gait,ocu.connect,ocu.sbus_conncect,sdk_tar_way_point_uwb.check,sdk.sdk_mode) ;
      if((ocu.connect||sdk.sdk_mode==1||ocu.esp32_connect)&&sdk.sdk_mode==0){//nav_tx.request_gait==99){
-
           ocu.rc_spd_w[Yr]=dead(ocu.rc_spd_w[Yr],0.15);
           if(ocu.mode==RC_REMOTE||ocu.esp32_connect){
              switch(vmc_all.gait_mode){
@@ -151,7 +157,7 @@ void rc_process(float T){
                  break;
              }
           }
-          //printf("%f %f %f\n",ocu.rc_spd_w[Xr],ocu.rc_spd_w[Yr],ocu.rate_yaw_w);
+        //   printf("%f %f %f\n",ocu.rc_spd_w[Xr],ocu.rc_spd_w[Yr],ocu.rate_yaw_w);
          if(ABS(vmc_all.tar_spd.x)>MIN_SPD_ST||ABS(vmc_all.tar_spd.y)>MIN_SPD_ST)
             vmc_all.param.have_cmd_rc[0]=1;
          else
@@ -236,6 +242,7 @@ void rc_process(float T){
 
 void* Thread_T1(void*)//控制线程
 {
+    printf("[**test**],Thread_T1 loaded\n");
     float timer[5]={0};
     float sys_dt = 0,dT=0,T;
     int i=0;
@@ -245,16 +252,49 @@ void* Thread_T1(void*)//控制线程
         cal_invjacobi(&vmc[i]);		//计算雅克比逆
     }
 
+    // 线程优先级
     setCurrentThreadHighPriority(11);
-
+    
     while(1)
-    {
+    {   
         float leg_dt[2]={0};
         T = Get_Cycle_T(31);
         leg_dt[1]=T;
         subscribe_imu_to_webot(&robotwb, T);//赋值给robot结构体
 
         readAllMotorPos(&robotwb, leg_dt[1]);//读取角度
+
+        # if 0
+        // ============ 实时状态监测打印 ============
+        static int print_id_list[10] = {0,1,2,3,4, 7,8,9,10,11};
+        static int print_cnt = 0;
+        static int print_cnt1 = 0;
+        if(print_cnt++ > 200 && 1) {  //每200次循环打印1次
+            
+            // // 1、关节
+            // printf("%d, =====10个关节实时位置 (度)=====:\n", print_cnt1++);
+            // for(int i = 0; i < 10; i++) {
+            //     printf("  关节%d: %.2f弧度\n", i, leg_motor_all.q_now[print_id_list[i]]/57.3);
+            // }
+
+            // // 2、IMU
+            // printf("%d, =====IMU位置=====\n", print_cnt1++);
+            // printf("att_rate[ROLr]=%.2f\n", vmc_all.att_rate[ROLr]);
+            // printf("att_rate[PITr]=%.2f\n", vmc_all.att_rate[PITr]);
+            // printf("att_rate[YAWr]=%.2f\n", vmc_all.att_rate[YAWr]);
+            // printf("att[ROLr]=%.2frad\n", vmc_all.att[ROLr]/57.3);
+            // printf("att[PITr]=%.2frad\n", vmc_all.att[PITr]/57.3);
+            // printf("att[YAWr]=%.2frad\n", vmc_all.att[YAWr]/57.3);
+            
+            // 3、语音DDS
+            printf("%d, =====语音DDS=====\n", print_cnt1++);
+            printf("当前模式：cmd_type=%d\n",voice_cmd.cmd_type);
+            printf("当前数据：cmd_data=%d\n",voice_cmd.cmd_data);
+        
+            print_cnt = 0;
+        }
+        # endif
+
 
         locomotion_sfm(leg_dt[1]);//摆动控制
 
@@ -263,16 +303,89 @@ void* Thread_T1(void*)//控制线程
         else//default
             force_control_and_dis_stand(leg_dt[1]);//位力混控 站立版本
 
-        if(T>0.005)
-            printf("OT-S::sys_dt=%f\n",T);
-
         usleep(2000);
     }
 }
 
+void* Thread_DDS(void*)//语音线程
+{
+    printf("[**test**],Thread_DDS loaded\n");
+
+    // Create DDS entities
+    dds::domain::DomainParticipant participant(0);
+    dds::topic::Topic<WalkCommand::Msg> topic(participant, "WalkCommand_Msg");
+    dds::sub::Subscriber subscriber(participant);
+    dds::sub::DataReader<WalkCommand::Msg> reader(subscriber, topic);
+
+    // Create read condition and waitset
+    dds::sub::cond::ReadCondition read_condition(
+        reader,
+        dds::sub::status::DataState::new_data());
+    dds::core::cond::WaitSet waitset;
+    waitset += read_condition;
+
+    printf("[DDS] Subscriber initialized (Topic: WalkCommand_Msg),Waiting for walk commands..\n");
+
+    int received_count = 0;
+    while (true) {
+        try {
+            // Wait for data (with 1 second timeout)
+            auto conditions = waitset.wait(dds::core::Duration::from_secs(1));
+
+            if (conditions.size() > 0) {
+                // Read available data
+                auto samples = reader.take();
+
+                for (const auto& sample : samples) {
+                    if (sample.info().valid()) {
+                        const WalkCommand::Msg& msg = sample.data();
+                        received_count++;
+                        printf("[Walk %d Received!] Command: %s\n",received_count,msg.command().c_str());
+                        //msg.command() : "forward", "turn_left", "turn_right", "stand", "march_in_place"
+                        if (msg.command() == "stand")
+                        {
+                            voice_cmd.cmd_type = 2;
+                            // voice_cmd.cmd_data = 0;
+                            printf("type%d,data=%d\n",voice_cmd.cmd_type,voice_cmd.cmd_data);
+                        }
+                        else
+                        {
+                            voice_cmd.cmd_type = 1;
+                            if (msg.command() == "march_in_place"){
+                                voice_cmd.cmd_data = 1;
+                                printf("type%d,data=%d\n",voice_cmd.cmd_type,voice_cmd.cmd_data);
+                            }
+
+                            else if (msg.command() == "forward"){
+                                voice_cmd.cmd_data = 2;
+                                printf("type%d,data=%d\n",voice_cmd.cmd_type,voice_cmd.cmd_data);
+                            }
+
+                            else if (msg.command() == "turn_left"){
+                                voice_cmd.cmd_data = 3;
+                                printf("type%d,data=%d\n",voice_cmd.cmd_type,voice_cmd.cmd_data);
+                            }
+
+                            else if (msg.command() == "turn_right"){
+                                voice_cmd.cmd_data = 4;
+                                printf("type%d,data=%d\n",voice_cmd.cmd_type,voice_cmd.cmd_data);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (const dds::core::TimeoutError& e) {
+            // Timeout is expected, just continue waiting
+            continue;
+        }
+    }
+    // usleep(5000);
+    return 0;
+}
+
 void* Thread_T5(void*)//控制线程
 {
-
+    printf("[**test**],Thread_T5 loaded\n");
     float timer[5]={0};
     float sys_dt = 0,dT=0;
     int i=0;
@@ -283,8 +396,8 @@ void* Thread_T5(void*)//控制线程
         rc_process(dT);
 
         usleep(5*1000);
-        if(dT>0.0055)
-            printf("OT-C::sys_dt=%f\n",dT);
+        // if(dT>0.0055)
+        //     printf("OT-C::sys_dt=%f\n",dT);
     }
 }
 
@@ -555,6 +668,7 @@ struct _msg_response_tinker
 
 void* Thread_UDP_RL_Tinker(void*)//RL Service
 {
+    printf("[**test**],Thread_UDP_RL_Tinker loaded\n");
     static int cnt = 0;
     float sys_dt = 0;
     float loss_cnt_sdk=0;
@@ -747,6 +861,7 @@ struct _msg_fb_tinker
 
 void* Thread_UDP_OCU(void*)//OCU UDP For ESP32
 {
+    printf("[**test**],Thread_UDP_OCU loaded\n");
     static int cnt = 0;
     float sys_dt = 0;
     float loss_cnt_sdk=0;
@@ -921,7 +1036,7 @@ void* Thread_UDP_OCU(void*)//OCU UDP For ESP32
 #define USE_RL 1
 int main(int argc, char *argv[])
 {
-    pthread_t tid_servo, tid_control, tid_nav, tid_mpc,tid_map,tid_rl,tid_ocu,tid_t[10];
+    pthread_t tid_servo, tid_control, tid_nav, tid_mpc,tid_map,tid_rl,tid_ocu,tid_t[10],tid_dds;
 #if 0
     cpu_set_t mask;
     CPU_ZERO(&mask);
@@ -943,9 +1058,10 @@ int main(int argc, char *argv[])
 #if !THREAD_1
     pthread_create(&tid_t[0], NULL, Thread_T5, NULL);
     pthread_create(&tid_t[1], NULL, Thread_T1, NULL);
+    pthread_create(&tid_dds, NULL, Thread_DDS, NULL);
 #endif
 
-#if USE_RL&&!RL_USE_TVM
+#if USE_RL&&!RL_USE_ONNX
     pthread_create(&tid_rl, NULL, Thread_UDP_RL_Tinker, NULL);
     //pthread_create(&tid_rl, NULL, Thread_UDP_RL_Tinymal, NULL);
 #endif

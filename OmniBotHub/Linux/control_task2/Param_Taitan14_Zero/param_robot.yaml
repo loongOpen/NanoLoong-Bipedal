@@ -1,6 +1,7 @@
 robot: tinker14-small-01 #odroid@192.168.1.120 3Dof
 
 robot_param: 
+  type: 1
   L1: 0.12
   L2: 0.14
   L3: 0.075
@@ -37,7 +38,7 @@ kin_param: #0 left leg in degree
   max_q03: 147  
   max_q04: 45
   max_q05: 45 #yao
-  max_q06: 0 #
+  max_q06: 0  #tou
   max_q10: 34
   max_q11: 21
   max_q12: 90 

@@ -1,6 +1,7 @@
 robot: tinker14-small-01 #odroid@192.168.1.120 3Dof
 
 robot_param: 
+  # type: 0
   L1: 0.12
   L2: 0.14
   L3: 0.075

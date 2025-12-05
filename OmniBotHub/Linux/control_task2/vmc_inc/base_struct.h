@@ -226,7 +226,7 @@ extern float line_off[2];
 #define Yr 1
 #define Zr 2
 #define P 0
-#define I 2
+// #define I 2
 #define DE 1
 #define FB 3
 #define IPv 4
@@ -572,6 +572,7 @@ typedef struct
     u8 err, unmove, hand_hold, fall, fly, fall_self;
     char mpc_init;
     //-------------rl
+    // int rl_model_type;
     float rl_commond_off[5];
     float rl_commond_rl_rst[3];
     float action_scale;
@@ -581,6 +582,8 @@ typedef struct
     int aciton_rl_flag=0;
     float rl_gain;
     float sita3_off;
+    // float rl_gait_time;
+    // float rl_gait_duty;
     int rl_connect;
     int loss_rl;
     PARAM_ALL param;
@@ -884,9 +887,12 @@ typedef struct {
 
 extern VMC_ROBOT_PARM vmc_robot_p;
 
+// #define TINKER 0
+// #define RL_BOY 1
 //机器人结构体 包含整个机器人的所有信息
 typedef struct
 {
+    // char type;
     char gait_level;
     char beep_state;
     LegTypeDef  Leg[4];

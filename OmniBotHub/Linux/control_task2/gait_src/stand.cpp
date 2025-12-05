@@ -33,8 +33,8 @@ void  Gait_Stand_Active(void)
     for(i=0;i<14;i++){
         leg_motor_all.q_set[i]=leg_motor_all.q_init[i];//doghome
         leg_motor_all.stiff[i]=leg_motor_all.stiff_stand;
+        // printf("Gait_Stand_Active执行设定站立，stiff=%f\n",leg_motor_all.stiff_stand);
     }
-
 }
 
 

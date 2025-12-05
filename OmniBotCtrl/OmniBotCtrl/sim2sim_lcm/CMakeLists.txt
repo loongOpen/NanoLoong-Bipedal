@@ -1,70 +1,39 @@
-cmake_minimum_required(VERSION 3.25)
+# cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.22)
+
 project(sim2sim)
 
 set(CMAKE_CXX_STANDARD 17)
 
 # 添加LCM库
 set(LCM_DIR "/usr/local/lib/lcm/cmake")
-find_package(LCM REQUIRED)
+find_package(lcm REQUIRED)
 
 set(LCM_INCLUDE_DIRS "/usr/local/include")
 include_directories(${LCM_INCLUDE_DIRS})
 set(LCM_LIBRARY_DIRS "/usr/local/lib")
 link_directories(${LCM_LIBRARY_DIRS})
 
-# 找到 CUDA
-set(CMAKE_CUDA_COMPILER "/usr/local/cuda-12.1/bin/nvcc")
-set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-12.1)
-set(CUDA_INCLUDE_DIRS "/usr/local/cuda-12.1/include")
-set(CUDA_LIBRARY_DIRS "/usr/local/cuda-12.1/lib64")
-find_package(CUDA REQUIRED)
+# 添加onnxruntime库
+set(ONNXRUNTIME_INCLUDE_DIR "/usr/include")
+set(ONNXRUNTIME_LIB_DIR "/usr/lib")
 
-include_directories(${CUDA_INCLUDE_DIRS})
-link_directories(${CUDA_LIBRARY_DIRS})
+# 添加eigen库
+find_package(Eigen3 REQUIRED)
 
-# 设置 LibTorch 的路径
-set(Torch_DIR "/home/pi/Downloads/troch_env/libtorch/share/cmake/Torch")
-set(CMAKE_PREFIX_PATH "/home/pi/Downloads/troch_env/libtorch")  # 将此路径替换为您解压 LibTorch 的路径
-find_package(Torch REQUIRED)
-include_directories(${Torch_DIR}/include)
-include_directories(${CMAKE_BINARY_DIR}/lcm_types)
+include_directories(${ONNXRUNTIME_INCLUDE_DIR})
+link_directories(${ONNXRUNTIME_LIB_DIR})
+
+include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/lcm_types) 
+include_directories(${PROJECT_SOURCE_DIR}/src) 
+include_directories(${PROJECT_SOURCE_DIR}/loong_utility)
 
-include_directories("lcm_types/my_lcm/Request.hpp")
-include_directories("lcm_types/my_lcm/Response.hpp")
+add_executable(lcm_publisher_onnx src/lcm_publisher_onnx.cpp)
+add_executable(rl_gait_switch_lcm src/rl_gait_switch_lcm.cpp src/rl_onnx.cpp)
 
-add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/lcm_types/my_lcm/request.hpp
-    OUTPUT ${CMAKE_BINARY_DIR}/lcm_types/my_lcm/response.hpp
-    COMMAND lcm-gen -x ${CMAKE_SOURCE_DIR}/lcm_types/request.lcm
-    COMMAND lcm-gen -x ${CMAKE_SOURCE_DIR}/lcm_types/response.lcm
-    COMMAND lcm-gen -p ${CMAKE_SOURCE_DIR}/lcm_types/request.lcm
-    COMMAND lcm-gen -p ${CMAKE_SOURCE_DIR}/lcm_types/response.lcm
-    DEPENDS ${CMAKE_SOURCE_DIR}/lcm_types/request.lcm
-    DEPENDS ${CMAKE_SOURCE_DIR}/lcm_types/response.lcm
-    COMMENT "Generating LCM types"
-)
-
-add_custom_target(lcm_types ALL
-    DEPENDS ${PROJECT_SOURCE_DIR}/lcm_types/my_lcm/Request.hpp
-    DEPENDS ${PROJECT_SOURCE_DIR}/lcm_types/my_lcm/Response.hpp
-)
-
-add_executable(lcm_service src/lcm_service.cpp)
-add_executable(lcm_publisher src/lcm_publisher.cpp)
-add_executable(udp_publisher src/udp_publisher.cpp)
-add_executable(udp_publisher_tinker src/udp_publisher_tinker.cpp)
-
-add_dependencies(lcm_service lcm_types)
-add_dependencies(lcm_publisher lcm_types)
-add_dependencies(udp_publisher lcm_types)
-add_dependencies(udp_publisher lcm_types)
-set(LCM_LIBRARIES "/usr/local/lib/liblcm.so")
-target_link_libraries(lcm_service ${LCM_LIBRARIES})
-target_link_libraries(lcm_publisher ${LCM_LIBRARIES})
-target_link_libraries(udp_publisher ${LCM_LIBRARIES})
-
-target_link_libraries(lcm_service ${TORCH_LIBRARIES})
-target_link_libraries(lcm_publisher ${TORCH_LIBRARIES})
-target_link_libraries(udp_publisher ${TORCH_LIBRARIES})
-target_link_libraries(udp_publisher_tinker ${TORCH_LIBRARIES})
+target_link_libraries(lcm_publisher_onnx lcm)
+target_link_libraries(rl_gait_switch_lcm onnxruntime lcm)
+target_link_libraries(lcm_publisher_onnx onnxruntime spacemit_ep) # 依赖onnxruntime库
+target_link_libraries(rl_gait_switch_lcm onnxruntime spacemit_ep)

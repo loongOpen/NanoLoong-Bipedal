@@ -324,11 +324,11 @@ for (int i = 0; i < 14; i++)
 #endif
 
 #if 0
-printf("connect=%d st=%d back=%d x=%d a=%d\n",
+printf("spi::connect=%d st=%d back=%d x=%d a=%d\n",
     spi_rx.ocu.connect ,  spi_rx.ocu.key_st,spi_rx.ocu.key_back, spi_rx.ocu.key_x,spi_rx.ocu.key_a );
-printf("b=%d y=%d ll=%d rr=%d lr=%d up=%d\n",
+printf("spi::b=%d y=%d ll=%d rr=%d lr=%d up=%d\n",
     spi_rx.ocu.key_b ,  spi_rx.ocu.key_y,spi_rx.ocu.key_ll, spi_rx.ocu.key_rr,spi_rx.ocu.key_lr ,spi_rx.ocu.key_ud);
-printf("spd0=%f spd1=%f att0=%f att1=%f yaw=%f\n",
+printf("spi::spd0=%f spd1=%f att0=%f att1=%f yaw=%f\n",
     spi_rx.ocu.rc_spd_w[0],spi_rx.ocu.rc_spd_w[1],spi_rx.ocu.rc_att_w[0],spi_rx.ocu.rc_att_w[1],spi_rx.ocu.rate_yaw_w);
 #endif
 //----------------------数据转化--------------------
@@ -367,7 +367,7 @@ mem_write_cnt=MEM_SIZE/2;
 char id_swap_flig[4]={2,3,0,1};
 float q_tar_temp[3]={0};
 //-------------------------数据转化------------------------
-#if 0//debug
+#if 0 //debug
 for(int id=0;id<14;id++)
 {
     spi_tx.q_set[id]=0;
@@ -393,10 +393,27 @@ for(int id=0;id<14;id++)
     spi_tx.reser_q_div[id]=leg_motor_all.reset_q_div[id];//new doghome
 }
 
+#if 0
+static int pid_cnt = 0;
+static int print_id_list[10] = {0,1,2,3,4, 7,8,9,10,11};
+if (pid_cnt++>1000){
+    printf("=====PID参数打印=====:\n");
+    for(int i = 0; i < 10; i++) {
+        printf("KP[%d] = %.4f ", i, spi_tx.kp[print_id_list[i]]);
+        printf("KI[%d] = %.4f ", i, spi_tx.ki[print_id_list[i]]);
+        printf("KD[%d] = %.4f ", i, spi_tx.kd[print_id_list[i]]);
+        printf("\n");
+    }
+    pid_cnt = 0;
+}
+#endif
+
 for(int id=0;id<14;id++)
 {
     spi_tx.q_set_servo[id]=leg_motor_all.q_set_servo_out[id];
     spi_tx.q_reset_servo[id]=leg_motor_all.q_reset_servo[id];
+    // spi_tx.kp_servo[id]=leg_motor_all.kp_servo[id];
+    // spi_tx.kd_servo[id]=leg_motor_all.kd_servo[id];
     spi_tx.stiff_servo[id]=leg_motor_all.stiff_servo[id];
     spi_tx.reser_q_div_servo[id]=leg_motor_all.reset_q_div_servo[id];//new doghome
     spi_tx.tau_ff_servo[id]=leg_motor_all.t_set_servo[id]*mem_connect*vmc_all.param.soft_weight;
@@ -404,6 +421,7 @@ for(int id=0;id<14;id++)
 
 #endif
     spi_tx.en_motor=leg_motor_all.motor_en;
+    // spi_tx.en_motor=0;//下电测试
     spi_tx.en_servo=leg_motor_all.servo_en;
     spi_tx.reser_q=leg_motor_all.reset_q;
     spi_tx.reset_err=leg_motor_all.reset_err;
@@ -424,7 +442,9 @@ for(int id=0;id<14;id++)
 
 //------------------------写入内存-------------------------------------
 
+    // 系统控制标志
     mem_write_buf[mem_write_cnt++] = spi_tx.en_motor;
+    // printf("mem_write_cnt=%d,spi_tx.en_motor=%d\n",mem_write_cnt,spi_tx.en_motor);
     mem_write_buf[mem_write_cnt++] = spi_tx.en_servo;
     mem_write_buf[mem_write_cnt++] = spi_tx.reser_q;//reset all
     mem_write_buf[mem_write_cnt++] = spi_tx.reset_err;
@@ -433,6 +453,7 @@ for(int id=0;id<14;id++)
     mem_write_buf[mem_write_cnt++] = mems.Mag_CALIBRATE;
     mem_write_buf[mem_write_cnt++] = spi_tx.beep_state= robotwb.beep_state;
 
+    // BLDC电机
     for (int i = 0; i < 14; i++)
     {
         setDataFloat_mem( spi_tx.q_set[i],&mem_write_cnt);
@@ -445,6 +466,8 @@ for(int id=0;id<14;id++)
         //printf("id=%d set_q=%f kp=%f kd=%f stiif=%f\n",i,spi_tx.q_set[i],spi_tx.kp[i],spi_tx.kd[i],spi_tx.stiff[i]);
     }
     //printf("bldc:%d %d %d\n",spi_tx.reser_q_div[0],spi_tx.reser_q_div[1],spi_tx.reser_q_div[2]);
+
+    // 伺服电机
     for (int i = 0; i < 14; i++)
     {
         setDataFloat_mem( spi_tx.q_set_servo[i],&mem_write_cnt);
@@ -596,11 +619,11 @@ if(spi_rx.ocu.connect||spi_rx.ocu.sbus_conncect){
     }
 }
 #if 0
-printf("connect=%d st=%d back=%d x=%d a=%d\n",
+printf("nav::connect=%d st=%d back=%d x=%d a=%d\n",
     spi_rx.ocu.connect ,  spi_rx.ocu.key_st,spi_rx.ocu.key_back, spi_rx.ocu.key_x,spi_rx.ocu.key_a );
-printf("b=%d y=%d ll=%d rr=%d lr=%d up=%d\n",
+printf("nav::b=%d y=%d ll=%d rr=%d lr=%d up=%d\n",
     spi_rx.ocu.key_b ,  spi_rx.ocu.key_y,spi_rx.ocu.key_ll, spi_rx.ocu.key_rr,spi_rx.ocu.key_lr ,spi_rx.ocu.key_ud);
-printf("spd0=%f spd1=%f att0=%f att1=%f yaw=%f\n",
+printf("nav::spd0=%f spd1=%f att0=%f att1=%f yaw=%f\n",
     spi_rx.ocu.rc_spd_w[0],spi_rx.ocu.rc_spd_w[1],spi_rx.ocu.rc_att_w[0],spi_rx.ocu.rc_att_w[1],spi_rx.ocu.rate_yaw_w);
 #endif
 sdk.cmd_pit=nav_tx.exp_att_o[0];
@@ -614,6 +637,7 @@ sdk.cmd_z=nav_tx.exp_pos_o[2];
 
 void* Thread_Mem_Servo(void*)//内存管理线程
 {
+    printf("[**test**],Thread_Mem_Servo loaded\n");
     float timer[5]={0};
     float sys_dt = 0,dT=0;
     static int mem_init_cnt=0;
@@ -681,6 +705,7 @@ void* Thread_Mem_Servo(void*)//内存管理线程
 
 void* Thread_Mem_Navigation(void*)//内存管理线程
 {
+    printf("[**test**],Thread_Mem_Navigation loaded\n");
     float timer[5]={0};
     float sys_dt = 0,dT=0;
     static int  mem_init_cnt=0;

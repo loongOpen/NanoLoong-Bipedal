@@ -1,0 +1,10 @@
+module WalkCommand
+{
+    @extensibility(APPENDABLE)
+    struct Msg
+    {
+        string command;          // "forward", "turn_left", "turn_right", "stand", "march_in_place"
+        string text;             // 原始 ASR 文本
+        long long timestamp;
+    };
+};
